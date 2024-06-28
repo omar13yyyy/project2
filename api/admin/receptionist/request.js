@@ -121,16 +121,8 @@ async function donationRequest(req, res) {
     const { id, idUser } = req.body;
 
     const donation = await rsql('SELECT * FROM "requestBuying" WHERE requestid = $1 AND imageurl IS NOT NULL', [id]);
+    res.send(donation.rows )
 
-    if ( donation.rows.length > 0) {
-      const imageUrl = donation.rows[0].imageurl;
-      const imageStream = fs.createReadStream(imageUrl);
-      res.setHeader('Content-Type', 'image/jpeg');
-      imageStream.pipe(res);
-    } else {
-      res.status(404).send(' not found');
-    }
-  
 }
 router.route('/requests').post(requests)
 router.route('/requestDetails').post(requestDetails)

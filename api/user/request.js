@@ -120,6 +120,13 @@ async function cancellingRequest(req, res) {
 
  
 }
+async function donationRequest(req, res) {
+    const { id, idUser } = req.body;
+
+    const donation = await rsql('SELECT * FROM "requestBuying" WHERE requestid = $1 AND imageurl IS NOT NULL', [id]);
+    res.send(donation.rows )
+
+}
 router.route('/requests').post(requests)
 router.route('/requestDetails').post(requestDetails)
 router.route('/addRequest').post(addRequest)
@@ -127,6 +134,7 @@ router.route('/previousRequest').get(previousRequest)
 router.route('/donationForRequest').post(donationForRequest)
 router.route('/previousDonationRequest').get(previousDonationRequest)
 router.route('/cancellingRequest').post(cancellingRequest)
+router.route('/donationRequest').post(donationRequest)
 
 
 

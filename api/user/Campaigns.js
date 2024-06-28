@@ -142,6 +142,13 @@ async function donationForFund(req, res) {
   
 }
 
+async function donationCampaigns(req, res) {
+  const { id, idUser } = req.body;
+
+  const donation = await rsql('SELECT * FROM "campaignBuying"WHERE campaignId = $1 AND imageurl IS NOT NULL', [id]);
+  res.send(donation.rows);
+
+}
 
 
   router.route('/previousCampaigns').post(previousCampaigns)
@@ -151,7 +158,7 @@ async function donationForFund(req, res) {
   router.route('/donationForCamoaugns').post(donationForCamoaugns)
   router.route('/previousDonationCampaigns').get(previousDonationCampaigns)
   router.route('/donationForFund').post(donationForFund)
-
+  router.route('/donationCampaigns').post(donationCampaigns)
 
 
 
