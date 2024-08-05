@@ -8,6 +8,24 @@ public.form,public."allotmentFund",public."allotmentStore",public."storeCategory
 public."storeSubCategory",public."storeItem",public."requestBuying",public.complaint,
 public."storeLog",public."fundLog",public.role,public.permisions,public."rolePermission",public.admin;
 --CHANGELOG : in Request table change column name : status -> status
+CREATE TABLE IF NOT EXISTS public.wallets (
+    WalletID INT,
+    amountwallet integer,
+    createtDate DATE,
+    "idKey" text,
+      PRIMARY KEY (WalletID)
+
+);
+
+CREATE TABLE IF NOT EXISTS public.transactions (
+  TransactionID SERIAL NOT NULL,
+  IsIncoming INT NOT NULL,
+  TransactionDate DATE NOT NULL,
+  Quantity DECIMAL(10,2) NOT NULL,
+ "createDate" timestamp,
+
+  PRIMARY KEY (TransactionID)
+);
 CREATE TABLE IF NOT EXISTS public.users
 (
     id serial,
@@ -19,8 +37,10 @@ CREATE TABLE IF NOT EXISTS public.users
     address text,
     date timestamp,
     "createDate" timestamp,
+    comf boolean DEFAULT false ,
     PRIMARY KEY ("idKey")
 );
+
 
 CREATE TABLE IF NOT EXISTS public.confirmation
 (
@@ -72,7 +92,7 @@ CREATE TABLE IF NOT EXISTS public.request
     userId integer,
     title text,
     description1 text,
-    priority integer,
+    priority integer DEFAULT 0 ,
     status integer DEFAULT 0, 
     rejectedReason text  ,
     description2 text,
@@ -153,7 +173,7 @@ CREATE TABLE IF NOT EXISTS public."teamType"
 (
     id serial,
     title text,
-    isDisable boolean,
+    isDisable boolean DEFAULT false ,
     "createDate" timestamp,
     PRIMARY KEY (id)
 );
@@ -197,11 +217,17 @@ CREATE TABLE IF NOT EXISTS public."sendTeam"
     requestid integer,
     done boolean DEFAULT false ,
 
-    "fromDate" timestamp,
-    "toDate" timestamp,
+    "dayDate" timestamp,
+    "dateInteger" integer,
     PRIMARY KEY (id)
 );
-
+CREATE TABLE IF NOT EXISTS public."Dates"
+(
+    id serial,
+    "dayDate" timestamp,
+    
+    PRIMARY KEY (id)
+);
 CREATE TABLE IF NOT EXISTS public.fund
 (   
     id serial,
@@ -542,6 +568,28 @@ $BODY$
 	
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER
   COST 100;
+
+INSERT INTO permisions (id,title,"createDate") VAlUES (1,'show Store Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (2,'edit Store Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (3,'store Log Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (4,'visited Team Show Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (5,'visited Team Enter Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (6,'media Team View Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (7,'media Team Edit Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (8,'superAdmin View Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (9,'superAdmin  Fund Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (10,'superAdmin Employee Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (11,'relief Manager Teams Management Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (12,'relief Manager Requests Management Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (13,'relief Manager Campaigns Managment Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (14,'relief Manager Complaint Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (15,'receptionist add Complaint Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (16,'receptionist Campaigns Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (17,'receptionist profile Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (18,'receptionist request Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (19,'receptionist create Account Permission',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (20,'full Admin Permissions',now());
+INSERT INTO permisions (id,title,"createDate") VAlUES (21,'superAdmin Campaigns  Permission',now());
 
 
 

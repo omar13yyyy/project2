@@ -54,28 +54,24 @@ async function previousRequest(req, res) {
 async function donationForRequest(req, res) {
 
     const { id, amount } = req.body;
-    // const campaignResult = await rsql(`SELECT * FROM campaigns WHERE id = $1`, [id]);
-
-    // if (campaignResult.rows.length === 0) {
-    //   res.status(404).send({ error: `Campaign with ID ${id} not found.` });
-    //   return;
-    // }
-
-    // const { minimumdonation: minimumDonation } = campaignResult.rows[0];
-
-    // console.log(campaignResult.rows);
-    // console.log(minimumDonation);
-
-    // if (amount >= minimumDonation) {
-    console.log(id);
     const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [req.body.idUser]);
-    const userIdKey = userResult.rows[0].idKey;
-    console.log(userIdKey);
+  const userIdKey = userResult.rows[0].idKey;
+  console.log(userIdKey);
+  var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
+
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+    res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
+return;
+  }
+  console.log(wallet.rows[0].amountwallet)
+ var total= wallet.rows[0].amountwallet-amount
+ console.log(total)
+ const wallet1 = await rsql('update  wallets SET amountwallet=$1 WHERE "idKey"=$2',[total,userIdKey]);
+ 
+  
     const donationResult = await rsql(`INSERT INTO "requestDonation" ("requestId", count, userIdKey, "createDate") VALUES ($1, $2, $3, NOW())`, [id, amount, userIdKey]);
     res.send({ success: true });
-    // } else {
-    //   res.status(400).send({ error: `The donation amount must be greater than or equal to the minimum donation of $${minimumDonation}.` });
-    // }
+  
 }
 
 async function previousDonationRequest(req, res) {

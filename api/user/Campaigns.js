@@ -50,10 +50,23 @@ async function campaignsDetails(req, res) {
 }
 //--------------------------
 async function donationForCamoaugns(req, res) {
-  const userId = 1;
-  //TODO get user id form token 
+  const userId = req.userId;
 
   const { id, amount } = req.body;
+  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [userId]);
+  const userIdKey = userResult.rows[0].idKey;
+  console.log(userIdKey);
+  var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
+
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+    res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
+return;
+  }
+  console.log(wallet.rows[0].amountwallet)
+ var total= wallet.rows[0].amountwallet-amount
+ console.log(total)
+ const wallet1 = await rsql('update  wallets SET amountwallet=$1 WHERE "idKey"=$2',[total,userIdKey]);
+
   const campaignResult = await rsql(`SELECT * FROM campaigns WHERE id = $1`, [id]);
 
   if (campaignResult.rows.length === 0) {
@@ -68,11 +81,9 @@ async function donationForCamoaugns(req, res) {
 
   if (amount >= minimumDonation) {
     console.log(id);
-    const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [userId]);
-    const userIdKey = userResult.rows[0].idKey;
-    console.log(userIdKey);
+   
     const donationResult = await rsql(`
-        INSERT INTO "campaignDonation" ("campaignId", count, userIdKey, "createDate") 
+        INSERT INTO "campaignDonation" ("CampaignId", count, userIdKey, "createDate") 
         VALUES ($1, $2, $3, NOW())
       `, [id, amount, userIdKey]);
     res.send({ success: true });
@@ -83,8 +94,7 @@ async function donationForCamoaugns(req, res) {
 //----------------------------------------
 
 async function previousDonationCampaigns(req, res) {
-  const userId = 1;
-  //TODO get user id form token 
+  const userId = req.userId;
 
   const { id } = req.body;
   console.log(id);
@@ -92,16 +102,16 @@ async function previousDonationCampaigns(req, res) {
   if (result0.rowCount > 0) {
     var userIdKey = result0.rows[0].idKey;
     console.log(userIdKey);
-    const result1 = await rsql(`SELECT "campaignId" FROM "campaignDonation" where userIdKey =$1`,[userIdKey]);
+    const result1 = await rsql(`SELECT "CampaignId" FROM "campaignDonation" where userIdKey =$1`,[userIdKey]);
     if (result1.rowCount > 0) {
       var campaignDonation = [];
       for (let i = 0; i < result1.rowCount; i++) {
-        const CampaignId = result1.rows[i].campaignId;
+        const CampaignId = result1.rows[i].CampaignId;
         console.log(CampaignId);
-        const result2 = await rsql(`SELECT title FROM campaigns where id =$1`, [CampaignId]);
+        const result2 = await rsql(`SELECT title FROM campaigns where id =$1`, [CampaignId,]);
         
         if (result2.rowCount > 0) {
-          const result3 = await rsql(`SELECT * FROM "campaignBuying" where campaignId =$1`, [CampaignId]);
+          const result3 = await rsql(`SELECT * FROM "donationBuying" where donationid =$1`, [CampaignId,]);
           if (result3.rowCount > 0) {
           campaignDonation.push({
             id: CampaignId,
@@ -122,14 +132,23 @@ async function previousDonationCampaigns(req, res) {
 }
 //------------------------------------------
 async function donationForFund(req, res) {
-  const userId = 1;
-  //TODO get user id form token 
+  const userId = req.userId;
 
   const { id, amount } = req.body;
-  
-    const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [userId]);
-    const userIdKey = userResult.rows[0].idKey;
-    console.log(userIdKey);
+  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [userId]);
+  const userIdKey = userResult.rows[0].idKey;
+  console.log(userIdKey);
+  var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
+
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+    res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
+return;
+  }
+  console.log(wallet.rows[0].amountwallet)
+ var total= wallet.rows[0].amountwallet-amount
+ console.log(total)
+ const wallet1 = await rsql('update  wallets SET amountwallet=$1 WHERE "idKey"=$2',[total,userIdKey]);
+ 
     const donationResult = await rsql(`INSERT INTO "fundDonation" ( count, userIdKey, "createDate") VALUES ($1, $2, NOW())`, [ amount, userIdKey]);
     const thepreviousfund=await rsql(`SELECT count FROM fund ORDER BY count DESC LIMIT 1`);
     var count=thepreviousfund.rows[0].count
@@ -150,7 +169,6 @@ async function donationCampaigns(req, res) {
 
 }
 
-
   router.route('/previousCampaigns').post(previousCampaigns)
   router.route('/previousCampaignsDetails').post(previousCampaignsDetails)
   router.route('/campaigns').post(campaigns)
@@ -159,6 +177,7 @@ async function donationCampaigns(req, res) {
   router.route('/previousDonationCampaigns').get(previousDonationCampaigns)
   router.route('/donationForFund').post(donationForFund)
   router.route('/donationCampaigns').post(donationCampaigns)
+
 
 
 

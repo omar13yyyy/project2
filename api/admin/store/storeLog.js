@@ -5,6 +5,7 @@ const fs = require('fs');
 const router = express.Router();
 
 async function storeLog(req,res,next){
+    try{
     const offset = (req.body.start - 1) * req.body.count; 
     let pages = await commitsql(`SELECT COUNT("storeItem".id) as count FROM "storeLog" JOIN "storeItem"
         ON "storeItem".id= "storeLog"."itemId"`);
@@ -15,7 +16,12 @@ async function storeLog(req,res,next){
             pages : Math.ceil(pages.rows[0].count/req.body.count),
             result : result.rows
           })
+        }catch{
+            console.log("catch")
+            res.status(400).send('catch');
+        }  
         }
+
 
 router.route('/storeLog').post(storeLog);
 

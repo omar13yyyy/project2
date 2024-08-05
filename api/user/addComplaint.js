@@ -5,9 +5,8 @@ const jwt = require('jsonwebtoken');
 const router = express.Router()
 
 async function addComplaint(req,res){
-  const userId =1
+  const userId = req.userId;
 //console.log(userId)
-//TODO : get user id from token
  const result= await rsql(`insert into complaint (complaint,"userId","createDate") VALUES ($1,$2,now()) `,[req.body.descr,userId]);
  res.send({ success: true });
 

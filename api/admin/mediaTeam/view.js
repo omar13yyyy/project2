@@ -5,6 +5,7 @@ const fs = require('fs');
 const router = express.Router();
 
 async function previousCampaigns(req,res,next){
+    try{
 
     const offset = (req.body.start - 1) * req.body.count; 
 
@@ -15,26 +16,44 @@ async function previousCampaigns(req,res,next){
         pages : Math.ceil(pages.rows[0].count/req.body.count),
         result : result.rows
     })
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 async function previousCampaignsDetails(req,res,next){
 
 
+    try{
 
     let result = await commitsql(`SELECT description as descr FROM "previousCampaigns" WHERE id =$1  `,[req.body.id]);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 
 async function aboutUs(req,res,next){
 
+    try{
 
 
     let result = await commitsql(`SELECT * FROM "aboutUs"   `);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 async function ads(req,res,next){
+    try{
 
     const offset = (req.body.start - 1) * req.body.count; 
 
@@ -45,7 +64,11 @@ async function ads(req,res,next){
         pages : Math.ceil(pages.rows[0].count/req.body.count),
         result : result.rows
     })
-
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 

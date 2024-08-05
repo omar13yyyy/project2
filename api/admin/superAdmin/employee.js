@@ -3,32 +3,49 @@ const commitsql = require('../../../database/commitsql')
 const path = require("path");
 const fs = require('fs');
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
 
 async function showRole(req,res,next){
+    try{
 
 
 
     let result = await commitsql(`SELECT * FROM role`);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function createRole(req,res,next){
 
 
+    try{
 
     let result = await commitsql(`INSERT INTO role (title,"createDate") VALUES ($1,$2)`,[req.body.title,new Date().toISOString()]);
     res.send("Done");
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 async function showPermissions(req,res,next){
 
+    try{
 
 
     let result = await commitsql(`SELECT * FROM permisions`);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 async function showRolePermisions(req,res,next){
 
+    try{
 
 
     let result = await commitsql(`SELECT permisions.id  as permissionId  ,
@@ -39,50 +56,80 @@ async function showRolePermisions(req,res,next){
    WHERE "rolePermission"."roleId" = $1
    `,[req.body.id]);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function addPermissionToRole(req,res,next){
 
  //TODO : make (roleId-permissionId) unique
 
+ try{
 
     let result = await commitsql(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES ($1,$2,$3)`,[req.body.roleId,req.body.permissionId,new Date().toISOString()]);
     res.send("Done");
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function deletePermissionFromRole(req,res,next){
-   
+    try{
+
      await commitsql(`DELETE FROM "rolePermission"
     WHERE "roleId" =$1 AND "permissionId" =$2`,[req.body.roleId,req.body.permissionId]);
 
        res.send("Done");
+    }catch{
+        console.log("catch")
+        res.status(400).send('catch');
+    }  
 
 
    }
    async function createEmployee(req,res,next){
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    try{
+
     //TODO : encrypt password
-     let result = await commitsql(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`,[req.body.email,req.body.roleId,req.body.name,req.body.password,new Date().toISOString()]);
+     let result = await commitsql(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`,[req.body.email,req.body.roleId,req.body.name,hashedPassword,new Date().toISOString()]);
  
         res.send("Done");
+    }catch{
+        console.log("catch")
+        res.status(400).send('catch');
+    }  
  
  
     }
     async function deleteEmployee(req,res,next){
         //TODO : encrypt password
-   
+        try{
+
         await commitsql(`DELETE FROM admin
         WHERE id =$1 `,[req.body.id]);     
             res.send("Done");
-     
+        }catch{
+            console.log("catch")
+            res.status(400).send('catch');
+        }  
      
         }
 
         async function showEmployee(req,res,next){
 
+            try{
 
 
             let result = await commitsql(`SELECT admin.id ,admin.email ,admin.name,role.title FROM admin JOIN role ON admin."roleId" = role.id`);
             res.send(result.rows);
+        }catch{
+            console.log("catch")
+            res.status(400).send('catch');
+        }  
         }
 
 router.route('/showRole').get(showRole);

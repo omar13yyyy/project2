@@ -10,20 +10,19 @@ const router= express.Router()
 
 async function resetconfirmation (req,res)
 {
+    const { email, code ,newPassword} = req.body
+
+    const result= await rsql(  `SELECT * FROM confirmation WHERE  email= $1`,[email]);
+    if (result.rows.length === 0) {
+      res.status(401).json({ error: 'Invalid email or code press to resend the code again' });
+      return;
+    }
+    const { createDate } = result.rows[0];
+    const expiryTime = new Date(createDate);
+    expiryTime.setMinutes(expiryTime.getMinutes() + 1);
+    console.log(expiryTime);
   
-    //TODO : send code via Email
 
-    
-  const expiryTime = new Date();
-  expiryTime.setMinutes(expiryTime.getMinutes() + 5);
-
-  const {email, code, newPassword } = req.body;
-console.log(email)
-const  result= await rsql('SELECT * FROM confirmation WHERE email = $1 ', [email])
-if (result.rows.length === 0) {
-    res.status(401).json({ error: 'Invalid email or code press to resend the code again' });
-    return;
-  }
   const confirmationCode = result.rows[0].code
  
 
@@ -32,7 +31,7 @@ if (result.rows.length === 0) {
     if (now > expiryTime) {
      
       await rsql(`DELETE FROM confirmation WHERE email = $1`,[email]); 
- return res.send('nop');
+ return res.send('The confirmation code is expired or invalid');
  
    }
    
@@ -40,7 +39,8 @@ else{
   if (code == confirmationCode)
   
   {
-  
+    await rsql(`UPDATE users SET comf = true WHERE email = $1`, [email]);
+
   await rsql(`DELETE FROM confirmation WHERE email = $1`,[email]
 
   );
@@ -56,10 +56,7 @@ else{
 }
 
 
-//function generateToken(id) {
- // const token = jwt.sign({ id }, process.env.TOKEN_SECRET)
- // return token  
-//}
+
 
 router.route('/resetconfirmation').post(resetconfirmation)
 

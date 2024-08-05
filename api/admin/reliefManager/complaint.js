@@ -5,6 +5,7 @@ const fs = require('fs');
 const router = express.Router();
 
 async function showComplaint(req,res,next){
+  try{
 
 const offset = (req.body.start - 1) * req.body.count; 
 let pages = await commitsql(`SELECT COUNT(complaint.id) as count from complaint JOIN users ON users.id=complaint."userId"  `,);
@@ -13,7 +14,16 @@ let result = await commitsql(`SELECT complaint.id,complaint.complaint,users.name
 res.json({
     pages : Math.ceil(pages.rows[0].count/req.body.count),
     result : result.rows
-  })}
+  })
+
+
+}catch{
+  console.log("catch")
+  res.status(400).send('catch');
+
+}
+}
+  
 router.route('/showComplaint').post(showComplaint);
 
 

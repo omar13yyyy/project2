@@ -14,7 +14,8 @@ const storageEngine = multer.diskStorage({
   const upload = multer({
           storage: storageEngine,
           fileFilter: (req, file, cb) => {
-              checkFileType(file, cb);}
+           checkFileType(file, cb);
+        }
           });
   
   
@@ -26,7 +27,7 @@ const storageEngine = multer.diskStorage({
           
           const mimeType = fileTypes.test(file.mimetype);
           
-          if (mimeType && extName) {
+         if (/*mimeType &&*/ extName) {
           return cb(null, true);
           } else {
           cb("Error: You can Only Upload Images!!");
@@ -36,12 +37,31 @@ const router = express.Router();
 
 
 async function showCampaigns(req,res,next){
+    try{
 
 
     let result = await commitsql(`SELECT * from campaigns WHERE isFinish = false AND isAllotment =false`);
+    for(let i =0 ; i<result.rowCount;i++){
+        let SUM = await commitsql(`SELECT SUM(count) FROM "campaignDonation" where "campaignId" =$1`,[result.rows[i].id]);
+        console.log(SUM.rows[0].sum)
+        if(SUM.rows[0].sum !=  null ){
+            result.rows[i].sum = SUM.rows[0].sum
+
+        }
+        else
+        result.rows[i].sum = "0"
+
+
+
+    }
+
     res.send(result.rows);
 
-
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 /*
 async function campaignsAllotmentStore(req,res,next){
@@ -55,13 +75,21 @@ async function campaignsAllotmentStore(req,res,next){
 */
 
 async function showFundCampaigns(req,res,next){
+    try{
+
     //TODO : 
     let result = await commitsql(`SELECT SUM(count) FROM "campaignDonation" where "campaignId" =$1`,[req.body.id]);
-    res.send(result.rows);
-
+    res.send(result.rows[0]);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 async function campaignBuying(req,res,next){
+    try{
+
     //TODO : handle files.length != count.length
     if (req.files) {
 
@@ -74,7 +102,11 @@ async function campaignBuying(req,res,next){
 
     res.send("Done");
     }
-
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 router.route('/showCampaigns').get(showCampaigns);
 //router.route('/campaignsAllotmentStore').post(campaignsAllotmentStore);

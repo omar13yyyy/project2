@@ -14,7 +14,8 @@ const storageEngine = multer.diskStorage({
   const upload = multer({
           storage: storageEngine,
           fileFilter: (req, file, cb) => {
-              checkFileType(file, cb);}
+             checkFileType(file, cb);
+            }
           });
   
   
@@ -26,7 +27,7 @@ const storageEngine = multer.diskStorage({
           
           const mimeType = fileTypes.test(file.mimetype);
           
-          if (mimeType && extName) {
+          if (/*mimeType &&*/ extName) {
           return cb(null, true);
           } else {
           cb("Error: You can Only Upload Images!!");
@@ -36,19 +37,31 @@ const storageEngine = multer.diskStorage({
   
 
 async function addPreviousCampaigns(req,res,next){
+    try{
 
     if (req.file) {
+
             let result = await commitsql(`INSERT INTO "previousCampaigns" (title,description,imageUrl,"createDate") VALUES ($1,$2,$3,$4)`,[req.body.title,req.body.descr,req.file.path,new Date().toISOString()]);
 
 
 
     res.send("Done");
     }
+    else{
+        res.status(400).send("please send image ..");
 
+    }
+
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 
 
 async function addAds(req,res,next){
+    try{
 
     if (req.file) {
             let result = await  commitsql(`INSERT INTO ads (title,description,"imageUrl","createDate") VALUES ($1,$2,$3,$4)`,[req.body.title,req.body.descr,req.file.path,new Date().toISOString()]);
@@ -57,19 +70,29 @@ async function addAds(req,res,next){
 
     res.send("Done");
     }
-
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 }
 async function deleteAds(req,res,next){
+    try{
 
     let result = await  commitsql(`UPDATE ads SET "isDisable" = $2  WHERE id = $1`,[req.body.id,true]);
 
 
 
     res.send("Done");
-    
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 
 }
 async function editAboutUs(req,res,next){
+    try{
 
     let result = await commitsql(`UPDATE "aboutUs" SET text1 = $1 ,text2=$2,text3=$3,text4=$4,text5 =$5,"contactUs" = $6`,
     [req.body.text1,req.body.text2,req.body.text3,req.body.text4,req.body.text5,req.body.contactUs]);
@@ -77,10 +100,15 @@ async function editAboutUs(req,res,next){
 
 
     res.send("Done");
-    
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 
 }
 async function editAboutUsImage(req,res,next){
+    try{
 
     if (req.file) {
     let oldImage = await commitsql(`SELECT "imageUrl" FROM "aboutUs"`);
@@ -96,18 +124,26 @@ async function editAboutUsImage(req,res,next){
     }
 
     res.send("Done");
-    
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+  
+  }
 
 }
 async function DeletePreviousCampaigns(req,res,next){
-
+    try{
     let result = await  commitsql(`UPDATE ads SET "isDisable" = $2  WHERE id = $1`,[req.body.id,true]);
 
 
 
     res.send("Done");
     
+}catch{
+  console.log("catch")
+  res.status(400).send('catch');
 
+}
 }
 
 router.route('/addPreviousCampaigns').post(upload.single("image"),addPreviousCampaigns);

@@ -26,8 +26,9 @@ const PORT = process.env.PORT || 8000;
 routes(app)
 
 
-//createdb()
-//seeder()
+createdb()
+seeder()
+
 
  /*app.all('*', (req, res, next) => {
     next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));

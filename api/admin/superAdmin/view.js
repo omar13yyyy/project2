@@ -8,28 +8,44 @@ const router = express.Router();
 
 async function showCampaigns(req,res,next){
 
+    try{
 
 
     let result = await commitsql(`SELECT id,title FROM campaigns WHERE isFinish = false`);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function campaignsDetails(req,res,next){
 
 
+    try{
 
     let result = await commitsql(`SELECT budget,"targetGroup",reason,description FROM campaigns WHERE id = $1`,[req.body.id]);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 async function profileInfo(req,res,next){
 
+    try{
 
 
     let result = await commitsql(`SELECT id,name,email,"number" as fullNumber,Date,address FROM users where "idKey" = $1 `,[req.body.id]);
     res.send(result.rows);
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function showComplaint(req,res,next){
+    try{
 
 
     const offset = (req.body.start - 1) * req.body.count; 
@@ -40,6 +56,10 @@ async function showComplaint(req,res,next){
         pages : Math.ceil(pages.rows[0].count/req.body.count),
         result : result.rows
       })
+    }catch{
+        console.log("catch")
+        res.status(400).send('catch');
+    }  
     }
 router.route('/showCampaigns').get(showCampaigns);
 router.route('/campaignsDetails').post(campaignsDetails);

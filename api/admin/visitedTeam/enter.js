@@ -15,7 +15,8 @@ const storageEngine = multer.diskStorage({
 const upload = multer({
         storage: storageEngine,
         fileFilter: (req, file, cb) => {
-            checkFileType(file, cb);}
+        checkFileType(file, cb);
+    }
         });
 
 
@@ -27,7 +28,7 @@ const upload = multer({
         
         const mimeType = fileTypes.test(file.mimetype);
         
-        if (mimeType && extName) {
+       if (/*mimeType &&*/ extName) {
         return cb(null, true);
         } else {
         cb("Error: You can Only Upload Images!!");
@@ -36,14 +37,20 @@ const upload = multer({
   
 
 async function enterForm(req,res,next){
+    try{
 
     //TODO: get teamId from token.
 
     let result = await commitsql(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES ($1,$2,$3,$4)`,[req.body.idRequest,req.body.idFormItem,req.body.answer,new Date().toISOString()]);
     res.send("Done");
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 async function uploadImages(req,res,next){
+    try{
 
     //TODO: get teamId from token.
     if (req.files) {
@@ -54,6 +61,10 @@ async function uploadImages(req,res,next){
 
     res.send("Done");
     }
+}catch{
+    console.log("catch")
+    res.status(400).send('catch');
+}  
 }
 
 router.route('/enterForm').post(enterForm);

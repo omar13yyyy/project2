@@ -1,9 +1,7 @@
 const express = require('express');
 const rsql = require("../../../database/commitsql")
 const router = express.Router()
-const path = require("path");
-const fs = require('fs');
-const multer = require("multer");
+
 
 async function campaigns(req, res) {
   const { start, count } = req.body;
@@ -37,6 +35,22 @@ async function campaignsDetails(req, res) {
 async function donationForCamoaugns(req, res) {
 
   const { id, amount,idUser } = req.body;
+
+  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [idUser]);
+  const userIdKey = userResult.rows[0].idKey;
+  console.log(userIdKey);
+  var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
+
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+    res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
+return;
+  }
+  console.log(wallet.rows[0].amountwallet)
+ var total= wallet.rows[0].amountwallet-amount
+ console.log(total)
+ const wallet1 = await rsql('update  wallets SET amountwallet=$1 WHERE "idKey"=$2',[total,userIdKey]);
+ 
+
   const campaignResult = await rsql(`SELECT * FROM campaigns WHERE id = $1`, [id]);
 
   if (campaignResult.rows.length === 0) {
@@ -51,9 +65,7 @@ async function donationForCamoaugns(req, res) {
 
   if (amount >= minimumDonation) {
     console.log(id);
-    const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [idUser]);
-    const userIdKey = userResult.rows[0].idKey;
-    console.log(userIdKey);
+   
     const donationResult = await rsql(`
         INSERT INTO "campaignDonation" ("campaignId", count, userIdKey, "createDate") 
         VALUES ($1, $2, $3, NOW())
@@ -106,9 +118,22 @@ async function donationForFund(req, res) {
 
   const { idUser, amount } = req.body;
   
-    const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [idUser]);
-    const userIdKey = userResult.rows[0].idKey;
-    console.log(userIdKey);
+
+  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [idUser]);
+  const userIdKey = userResult.rows[0].idKey;
+  console.log(userIdKey);
+  var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
+
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+    res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
+return;
+  }
+  console.log(wallet.rows[0].amountwallet)
+ var total= wallet.rows[0].amountwallet-amount
+ console.log(total)
+ const wallet1 = await rsql('update  wallets SET amountwallet=$1 WHERE "idKey"=$2',[total,userIdKey]);
+ 
+
     const donationResult = await rsql(`INSERT INTO "fundDonation" ( count, userIdKey, "createDate") VALUES ($1, $2, NOW())`, [ amount, userIdKey]);
     const thepreviousfund=await rsql(`SELECT count FROM fund ORDER BY count DESC LIMIT 1`);
     var count=thepreviousfund.rows[0].count

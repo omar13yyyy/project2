@@ -11,10 +11,11 @@ async function seeder(){
     });
 
   client.connect()
+  const bcrypt = require("bcrypt");
 
-await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, (["09010","user1","user1@mail.com","password","0987654321","address-address",new Date().toISOString(),new Date().toISOString()]))
-await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, (["090122","user2","user2@mail.com","password","0987654321","address-address",new Date().toISOString(),new Date().toISOString()]))
-await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, (["090102","user3","user3@mail.com","password","0987654321","address-address",new Date().toISOString(),new Date().toISOString()]))
+await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,comf,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, (["09010","user1","user1@mail.com","password","0987654321","address-address",new Date().toISOString(),true,new Date().toISOString()]))
+await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,comf,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, (["090122","user2","user2@mail.com","password","0987654321","address-address",new Date().toISOString(),false,new Date().toISOString()]))
+await client.query(`INSERT INTO users ("idKey",name,email,password,"number",address,date,comf,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, (["090102","user3","user3@mail.com","password","0987654321","address-address",new Date().toISOString(),false,new Date().toISOString()]))
 
 
 await client.query(`INSERT INTO "previousCampaigns" (title,imageUrl,description,"createDate") VALUES($1,$2,$3,$4)`, (["title1","imageUrl","description1",new Date().toISOString()]))
@@ -30,16 +31,16 @@ await client.query(`INSERT INTO ads (title,description,"imageUrl","createDate") 
 
     //isTeamDate(0),isVisited(1),isShow(2),isAllotment(3),isReceptionist(4),isDelivered(5),isRejected(6),isCanceled(7)
     /**/
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"not visited","description1",1,0,"description2",new Date().toISOString()]))
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"not visited-Receptionist ","description1",1,16,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"not visited","description1","work",0,0,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"not visited-Receptionist ","description1","work",0,16,"description2",new Date().toISOString()]))
     /**/
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"Rejected","description1",1,64,"description2",new Date().toISOString()]))
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"Canceled","description1",1,128,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"Rejected","description1","work",0,64,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"Canceled","description1","work",0,128,"description2",new Date().toISOString()]))
     /**/
 
 
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"not visited","description1",1,192,"description2",new Date().toISOString()]))
-await client.query(`INSERT INTO request (userId,title,description1,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7)`, ([1,"visited-Receptionist","description1",1,208,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"visited","description1","work",0,3,"description2",new Date().toISOString()]))
+await client.query(`INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, ([1,"visited-Receptionist","description1","work",0,11,"description2",new Date().toISOString()]))
    
 await client.query(`INSERT INTO campaigns (title,"imageUrl",budget,"targetGroup",reason,description,minimumDonation,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, (["title1","url",100000,"targetGroup","reason","description",500,new Date().toISOString()]))
 await client.query(`INSERT INTO campaigns (title,"imageUrl",budget,"targetGroup",reason,description,minimumDonation,"createDate") VALUES($1,$2,$3,$4,$5,$6,$7,$8)`, (["title2","url",100000,"targetGroup","reason","description",500,new Date().toISOString()]))
@@ -75,17 +76,17 @@ await client.query(`INSERT INTO "teamMember" ("teamId",name,"createDate") VALUES
 await client.query(`INSERT INTO "teamMember" ("teamId",name,"createDate") VALUES($1,$2,$3)`, ([1,"member3",new Date().toISOString()]))
 
 
-await client.query(`INSERT INTO "sendTeam" ("teamId",requestid,done,"fromDate","toDate") VALUES($1,$2,$3,$4,$5)`, ([1,1,false,new Date().toISOString(),new Date().toISOString()]))
-await client.query(`INSERT INTO "sendTeam" ("teamId",requestid,done,"fromDate","toDate") VALUES($1,$2,$3,$4,$5)`, ([1,1,false,new Date().toISOString(),new Date().toISOString()]))
+await client.query(`INSERT INTO "sendTeam" ("teamId",requestid,done,"dayDate","dateInteger") VALUES($1,$2,$3,$4,$5)`, ([1,1,false,new Date().toISOString(),10]))
+await client.query(`INSERT INTO "sendTeam" ("teamId",requestid,done,"dayDate","dateInteger") VALUES($1,$2,$3,$4,$5)`, ([1,1,false,new Date().toISOString(),12]))
 
 await client.query(`INSERT INTO form ("typeId",title,"createDate") VALUES($1,$2,$3)`, ([1,"title1",new Date().toISOString()]))
 await client.query(`INSERT INTO form ("typeId",title,"createDate") VALUES($1,$2,$3)`, ([1,"title2",new Date().toISOString()]))
 await client.query(`INSERT INTO form ("typeId",title,"createDate") VALUES($1,$2,$3)`, ([1,"title3",new Date().toISOString()]))
 
 
-await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([1,1,"answer",new Date().toISOString()]))
-await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([1,2,"answer",new Date().toISOString()]))
-await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([1,3,"answer",new Date().toISOString()]))
+await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([5,1,"answer1",new Date().toISOString()]))
+await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([5,2,"answer2",new Date().toISOString()]))
+await client.query(`INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES($1,$2,$3,$4)`, ([5,3,"answer3",new Date().toISOString()]))
 
 
 
@@ -129,18 +130,19 @@ await client.query(`INSERT INTO  role (title,"createDate") VALUES($1,$2)`, (["ro
 await client.query(`INSERT INTO  role (title,"createDate") VALUES($1,$2)`, (["role2",new Date().toISOString()]))
 await client.query(`INSERT INTO  role (title,"createDate") VALUES($1,$2)`, (["role3",new Date().toISOString()]))
 
-
+/*
 await client.query(`INSERT INTO  permisions (title,"createDate") VALUES($1,$2)`, (["permisions1",new Date().toISOString()]))
 await client.query(`INSERT INTO  permisions (title,"createDate") VALUES($1,$2)`, (["permisions2",new Date().toISOString()]))
 await client.query(`INSERT INTO  permisions (title,"createDate") VALUES($1,$2)`, (["permisions3",new Date().toISOString()]))
 
-
+*/
 await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,1,new Date().toISOString()]))
 await client.query(`INSERT INTO  "rolePermission" ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,2,new Date().toISOString()]))
 await client.query(`INSERT INTO  "rolePermission" ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,3,new Date().toISOString()]))
 
+const hashedPassword = await bcrypt.hash("1234567890", 10);
 
-await client.query(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`, (["admin1@mail.com",1,"adminName",1234567890,new Date().toISOString()]))
+await client.query(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`, (["admin1@mail.com",1,"adminName",hashedPassword,new Date().toISOString()]))
 
 await client.query(`INSERT INTO fund (count) VALUES ($1)`, ([20000000]))
 

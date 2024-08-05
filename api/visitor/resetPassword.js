@@ -9,6 +9,7 @@ const router= express.Router()
 
 async function resetPassword (req,res)
 {
+
     const { email } = req.body;
     const codeString  = Math.floor(1000 + Math.random() * 9000);
   const code= codeString.toString();
