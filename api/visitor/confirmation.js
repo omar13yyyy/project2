@@ -7,7 +7,7 @@ const router= express.Router()
 
 
 async function confirmation (req,res)
-{ 
+{     try {
   
   const { email, code } = req.body
   const result0= await rsql(  `SELECT "createDate",code FROM confirmation WHERE  email= $1`,[email]);
@@ -54,7 +54,10 @@ else {
 
 }
 
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 
 

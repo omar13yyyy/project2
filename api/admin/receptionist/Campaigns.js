@@ -4,6 +4,7 @@ const router = express.Router()
 
 
 async function campaigns(req, res) {
+  try {
   const { start, count } = req.body;
   if (start == 0) {
     res.status(401).send('start can not be 0 ');
@@ -14,25 +15,33 @@ async function campaigns(req, res) {
 
   const pages = await rsql(`SELECT  COUNT(id) as count FROM campaigns `)
 
-  const result = await rsql(`SELECT id, title ,"imageUrl" FROM campaigns ORDER BY id LIMIT $1 OFFSET $2`, [count, offset])
+  const result = await rsql(`SELECT id, title ,"imageUrl" FROM campaigns ORDER BY id DESC LIMIT $1 OFFSET $2`, [count, offset])
   res.json({
     pages : Math.ceil(pages.rows[0].count/req.body.count),
     result : result.rows
   })
 
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //--------------------------
 async function campaignsDetails(req, res) {
+  try {
   const { id } = req.body;
   console.log(id)
 
   const result = await rsql(`SELECT budget,"targetGroup",reason,description FROM campaigns where id =$1`, [id])
   res.send(result.rows)
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //--------------------------
 async function donationForCamoaugns(req, res) {
+  try {
 
   const { id, amount,idUser } = req.body;
 
@@ -41,7 +50,7 @@ async function donationForCamoaugns(req, res) {
   console.log(userIdKey);
   var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
 
-  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<=amount){
     res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
 return;
   }
@@ -74,11 +83,15 @@ return;
   } else {
     res.status(400).send({ error: `The donation amount must be greater than or equal to the minimum donation of $${minimumDonation}.` });
   }
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //----------------------------------------
 
 async function previousDonationCampaigns(req, res) {
-
+  try {
   const { idUser } = req.body;
   const result0 = await rsql(`SELECT "idKey" FROM users where id =$1`, [idUser]);
   if (result0.rowCount > 0) {
@@ -111,9 +124,14 @@ async function previousDonationCampaigns(req, res) {
       res.json(campaignDonation);
     }
   }
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //------------------------------------------
 async function donationForFund(req, res) {
+  try {
   const userId = req.userId;
 
   const { idUser, amount } = req.body;
@@ -124,7 +142,7 @@ async function donationForFund(req, res) {
   console.log(userIdKey);
   var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
 
-  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<amount){
+  if(wallet.rows.length === 0||wallet.rows[0].amountwallet<=amount){
     res.status(400).send({ error: `The donation amount must be greater than amount of wallet` });
 return;
   }
@@ -143,14 +161,22 @@ return;
     const fundlogresult = await rsql(`INSERT INTO "fundLog" ( count, state, userIdKey,"createDate") VALUES ($1, $2,$3, NOW())`, [ amount, 1 ,userIdKey]);
 
     res.send({ success: true });
-  
+  } catch (error) {
+    console.error('Error in aboutUs API:', error);
+    res.status(500).send({ error: 'An error occurred while processing the request.' });
+  } 
 }
 async function donationCampaigns(req, res) {
+  try {
     const { id, idUser } = req.body;
 
     const donation = await rsql('SELECT * FROM "campaignBuying"WHERE campaignId = $1 AND imageurl IS NOT NULL', [id]);
     res.send(donation.rows);
-
+  } catch (error) {
+    console.error('Error in aboutUs API:', error);
+    res.status(500).send({ error: 'An error occurred while processing the request.' });
+  }
+  
 }
 
   router.route('/campaigns').post(campaigns)

@@ -4,6 +4,7 @@ const router = express.Router()
 
 
 async function previousCampaigns(req, res) {
+  try {
   const { start, count } = req.body;
   if (start == 0) {
     res.status(401).send('start can not be 0 ');
@@ -14,19 +15,27 @@ async function previousCampaigns(req, res) {
 
   const result = await rsql(`SELECT id, title ,imageUrl FROM "previousCampaigns" ORDER BY id LIMIT $1 OFFSET $2`, [count, offset])
   res.send(result.rows)
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //----------------------------
 async function previousCampaignsDetails(req, res) {
+  try {
   const { id } = req.body;
 
 
   const result = await rsql(`SELECT description FROM "previousCampaigns" where id =$1`, [id])
   res.send(result.rows)
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //----------------------------
 async function campaigns(req, res) {
+  try {
   const { start, count } = req.body;
   if (start == 0) {
     res.status(401).send('start can not be 0 ');
@@ -37,23 +46,31 @@ async function campaigns(req, res) {
 
   const result = await rsql(`SELECT id, title ,"imageUrl" FROM campaigns ORDER BY id LIMIT $1 OFFSET $2`, [count, offset])
   res.send(result.rows)
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //--------------------------
 async function campaignsDetails(req, res) {
+  try {
   const { id } = req.body;
   console.log(id)
 
   const result = await rsql(`SELECT budget,"targetGroup",reason,description FROM campaigns where id =$1`, [id])
   res.send(result.rows)
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //--------------------------
 async function donationForCamoaugns(req, res) {
+  try {
   const userId = req.userId;
 
   const { id, amount } = req.body;
-  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [userId]);
+  const userResult = await rsql(`SELECT "idKey" FROM users WHERE id = $1`, [id]);
   const userIdKey = userResult.rows[0].idKey;
   console.log(userIdKey);
   var wallet = await rsql(`select * from wallets where "idKey"=$1`,[userIdKey])
@@ -83,35 +100,38 @@ return;
     console.log(id);
    
     const donationResult = await rsql(`
-        INSERT INTO "campaignDonation" ("CampaignId", count, userIdKey, "createDate") 
+        INSERT INTO "campaignDonation" ("campaignId", count, userIdKey, "createDate") 
         VALUES ($1, $2, $3, NOW())
       `, [id, amount, userIdKey]);
     res.send({ success: true });
   } else {
     res.status(400).send({ error: `The donation amount must be greater than or equal to the minimum donation of $${minimumDonation}.` });
   }
+ } catch (error) {
+        console.error('Error in aboutUs API:', error);
+        res.status(500).send({ error: 'An error occurred while processing the request.' });
+      }
 }
 //----------------------------------------
 
 async function previousDonationCampaigns(req, res) {
+  try {
   const userId = req.userId;
 
-  const { id } = req.body;
-  console.log(id);
+
   const result0 = await rsql(`SELECT "idKey" FROM users where id =$1`, [userId]);
   if (result0.rowCount > 0) {
     var userIdKey = result0.rows[0].idKey;
     console.log(userIdKey);
-    const result1 = await rsql(`SELECT "CampaignId" FROM "campaignDonation" where userIdKey =$1`,[userIdKey]);
+    const result1 = await rsql(`SELECT "campaignId" FROM "campaignDonation" where userIdKey =$1`,[userIdKey]);
     if (result1.rowCount > 0) {
       var campaignDonation = [];
       for (let i = 0; i < result1.rowCount; i++) {
-        const CampaignId = result1.rows[i].CampaignId;
-        console.log(CampaignId);
+        const CampaignId = result1.rows[i].campaignId;
         const result2 = await rsql(`SELECT title FROM campaigns where id =$1`, [CampaignId,]);
         
         if (result2.rowCount > 0) {
-          const result3 = await rsql(`SELECT * FROM "donationBuying" where donationid =$1`, [CampaignId,]);
+          const result3 = await rsql(`SELECT * FROM "campaignBuying" where campaignId =$1`, [CampaignId,]);
           if (result3.rowCount > 0) {
           campaignDonation.push({
             id: CampaignId,
@@ -129,9 +149,14 @@ async function previousDonationCampaigns(req, res) {
       res.json(campaignDonation);
     }
   }
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 //------------------------------------------
 async function donationForFund(req, res) {
+  try {
   const userId = req.userId;
 
   const { id, amount } = req.body;
@@ -158,15 +183,23 @@ return;
     const fundlogresult = await rsql(`INSERT INTO "fundLog" ( count, state, userIdKey,"createDate") VALUES ($1, $2,$3, NOW())`, [ amount, 1 ,userIdKey]);
 
     res.send({ success: true });
+  } catch (error) {
+    console.error('Error in aboutUs API:', error);
+    res.status(500).send({ error: 'An error occurred while processing the request.' });
+  }
   
 }
 
 async function donationCampaigns(req, res) {
+  try {
   const { id, idUser } = req.body;
 
   const donation = await rsql('SELECT * FROM "campaignBuying"WHERE campaignId = $1 AND imageurl IS NOT NULL', [id]);
   res.send(donation.rows);
-
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 
   router.route('/previousCampaigns').post(previousCampaigns)

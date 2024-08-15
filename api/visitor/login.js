@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 const router= express.Router()
 
 async function login(req,res)  
-{
+{    try {
   const {email,password } = req.body;
 console.log(email)
 const comf = await rsql('SELECT comf FROM users  where email=$1 ', [email]);
@@ -33,6 +33,10 @@ if (!isPasswordValid) {
 }
 else{
      res.status(401).send('Please confirm your account or create a new one.');
+}
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
 }
 }
 

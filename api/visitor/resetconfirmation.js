@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken')
 const router= express.Router()
 
 async function resetconfirmation (req,res)
-{
+{    try {
     const { email, code ,newPassword} = req.body
 
     const result= await rsql(  `SELECT * FROM confirmation WHERE  email= $1`,[email]);
@@ -51,7 +51,11 @@ else{
   const token = jwt.sign({ id: result.rows[0].id }, process.env.TOKEN_SECRET)
   res.send(token)
     
-  }else res.send('rong code')
+  }else res.send('wrong code')
+}
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
 }
 }
 

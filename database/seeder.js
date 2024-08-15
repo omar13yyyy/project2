@@ -67,7 +67,7 @@ await client.query(`INSERT INTO document ("typeId",item,"createDate") VALUES($1,
 await client.query(`INSERT INTO document ("typeId",item,"createDate") VALUES($1,$2,$3)`, ([1,"document2",new Date().toISOString()]))
 await client.query(`INSERT INTO document ("typeId",item,"createDate") VALUES($1,$2,$3)`, ([1,"document3",new Date().toISOString()]))
 
-await client.query(`INSERT INTO team ("typeId",title,"createDate") VALUES($1,$2,$3)`, ([1,"team1",new Date().toISOString()]))
+await client.query(`INSERT INTO team ("typeId",title,adminId,"createDate") VALUES($1,$2,$3,$4)`, ([1,"team1",1,new Date().toISOString()]))
 
 
 
@@ -136,12 +136,17 @@ await client.query(`INSERT INTO  permisions (title,"createDate") VALUES($1,$2)`,
 await client.query(`INSERT INTO  permisions (title,"createDate") VALUES($1,$2)`, (["permisions3",new Date().toISOString()]))
 
 */
-await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,1,new Date().toISOString()]))
-await client.query(`INSERT INTO  "rolePermission" ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,2,new Date().toISOString()]))
+await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,8,new Date().toISOString()]))
+
+await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,9,new Date().toISOString()]))
+
+await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,10,new Date().toISOString()]))
+
+await client.query(`INSERT INTO "rolePermission"  ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,21,new Date().toISOString()]))
+/*await client.query(`INSERT INTO  "rolePermission" ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,2,new Date().toISOString()]))
 await client.query(`INSERT INTO  "rolePermission" ("roleId","permissionId","createDate") VALUES($1,$2,$3)`, ([1,3,new Date().toISOString()]))
-
+*/
 const hashedPassword = await bcrypt.hash("1234567890", 10);
-
 await client.query(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`, (["admin1@mail.com",1,"adminName",hashedPassword,new Date().toISOString()]))
 
 await client.query(`INSERT INTO fund (count) VALUES ($1)`, ([20000000]))

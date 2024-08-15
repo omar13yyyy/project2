@@ -12,7 +12,7 @@ var bodyParser = require('body-parser');
 const PORT = process.env.PORT || 8000;
 
 
- const app = express();
+  const app = express();
  app.use(express.json());
 
  app.use(bodyParser.json()); 
@@ -26,9 +26,6 @@ const PORT = process.env.PORT || 8000;
 routes(app)
 
 
-createdb()
-seeder()
-
 
  /*app.all('*', (req, res, next) => {
     next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
@@ -40,3 +37,4 @@ app.listen(PORT, () => {
 });
 
                                         
+exports.app = app

@@ -2,21 +2,22 @@ const jwt = require('jsonwebtoken');
   const commitsql = require('../database/commitsql')
 
 const adminMiddleware = async (req, res, next) => {
-
+  
   let permissionCode = req.permissionCode;
   if(req.headers.authorization != undefined){
   const bearer =req.headers.authorization.split(' ')
   const authHeader = bearer[1];
-  
-  if (!authHeader) {
+    if (!authHeader) {
     return res.status(401).send({ message: 'Unauthorized' });
-  } console.log(authHeader)
+  } 
 
 
   jwt.verify(authHeader, process.env.TOKEN_SECRET_ADMIN, async (error, decoded) => {
-    try{
-    let userRole = decoded.roleId;
     let userId = decoded.id;
+    let userRole = decoded.roleId;
+
+   
+
 
     
     var result = await commitsql(`SELECT "permissionId" from "rolePermission" WHERE "roleId" =$1 `, [userRole])
@@ -33,13 +34,14 @@ const adminMiddleware = async (req, res, next) => {
       }
     if (hasAccess) {
       req.userId = userId;
+      req.userRole = userRole;
       next();
-    } else {
+     } else {
       res.status(403).send('Forbidden');
     }
-  }catch{
+    try{}catch{
     console.log(error)
-    res.status(403).send('Forbidden');
+    res.status(400).send('catch');
 
   }
 });
@@ -47,6 +49,8 @@ const adminMiddleware = async (req, res, next) => {
 }else
 res.status(403).send('please send token as Bearer youtoken if use header or just token if you use postman folder parent bearer token');
 
+// req.userId =1;
+// next()
 };
 const showStorePermission = async (req, res, next) => {
 

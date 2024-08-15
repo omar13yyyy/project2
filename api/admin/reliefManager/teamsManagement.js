@@ -2,6 +2,8 @@ const express = require('express');
 const commitsql = require('../../../database/commitsql')
 const path = require("path");
 const fs = require('fs');
+const bcrypt = require("bcrypt");
+
 const router = express.Router();
 
 async function addType(req,res,next){
@@ -95,24 +97,35 @@ async function showTeams(req,res,next){
 async function addTeam(req,res,next){
     try{
 
-    //TODO : create Function  
-   // let result = await commitsql(`INSERT INTO document  ("typeId",item,"createDate") VALUES ($1,$2,$3) `,[req.body.typeId,req.body.item,new Date().toISOString()]);
-      console.log(req.body)
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        let result2=await commitsql(`Select email from admin where email =$1`,[req.body.email]);
+        console.log(result2.rows)
+        if(result2.rowCount ==0){
+            let result =await commitsql(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5) returning id`,[req.body.email,1,"visited team admin "+req.body.teamName,hashedPassword,new Date().toISOString()]);
+           await commitsql(`INSERT INTO team  ("typeId",title,adminId,"createDate") VALUES ($1,$2,$3,$4) `,[req.body.typeId,req.body.teamName,result.rows[0].id,new Date().toISOString()]);
 
-    res.send("Done");
-}catch{
-    console.log("catch")
-    res.status(400).send('catch');
-  
-}}
+        res.send("Done");
+    
+    }else{
+    res.status(400).send("email is exist");
+    return
+}
+    }catch{
+        console.log("catch")
+        res.status(400).send('catch');
+    }  
+ 
+}
 async function deleteTeam(req,res,next){
     try{
 
-    //TODO : create Function  
-    let result = await commitsql(`UPDATE team  SET "isDisable" = $1 WHERE id = $2`,[true,req.body.id]);
+    let result = await commitsql(`SELECT adminId from team where id=$1`,[req.body.id])
+    await commitsql(`UPDATE team  SET "isDisable" = $1 WHERE id = $2`,[true,req.body.id]);
+    await commitsql(`Delete From admin WHERE id = $1`,[result.rows[0].adminId]);
+
    console.log(req.body)
     res.send("Done");
-}catch{
+   }catch{
     console.log("catch")
     res.status(400).send('catch');
   
@@ -134,7 +147,6 @@ async function editTeamName(req,res,next){
 async function showTeamDetails(req,res,next){
     try{
 
-    //TODO : create Function
     let typeId = await commitsql(`SELECT "typeId" FROM team WHERE  id =$1 `,[req.body.id]);
     if(typeId.rowCount ==1){
     let result1 = await commitsql(`SELECT id,name FROM "teamMember" WHERE  "teamId" = $1 AND "isDisable" = false`,[req.body.id]);

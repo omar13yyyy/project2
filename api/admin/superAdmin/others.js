@@ -40,12 +40,15 @@ async function addCampaigns(req,res,next){
     try{
 
     if (req.file) {
-    let result = await commitsql(`INSERT INTO campaigns (budget,"targetGroup",reason,description,minimumDonation,"imageUrl","createDate") VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-    [req.body.budget,req.body.TargetGroup,req.body.reason,req.body.descr,req.body.minimumDonation,req.file.path,new Date().toISOString()]);
+    let result = await commitsql(`INSERT INTO campaigns (title,budget,"targetGroup",reason,description,minimumDonation,"imageUrl","createDate") VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [req.body.title,req.body.budget,req.body.TargetGroup,req.body.reason,req.body.descr,req.body.minimumDonation,req.file.path,new Date().toISOString()]);
+    
     res.send("Done");
     
 
-}
+}else
+res.status(400).send('please send image');
+
 }catch{
     console.log("catch")
     res.status(400).send('catch');

@@ -8,15 +8,9 @@ const moment = require('moment')
 const router= express.Router()
 
 async function createAccount (req,res)
-{
+{    try {
   const {id,name,Email,fullNumber,Date,addr } = req.body;
 
-  const codeString  = Math.floor(1000 + Math.random() * 9000);
-  const code= codeString.toString();
-  //const code = crypto.randomBytes(2).toString('hex');
-await rsql(`DELETE FROM confirmation WHERE email = $1`,[Email]); 
- await rsql(`INSERT INTO confirmation (email,code,"createDate") VALUES ($1, $2,now())`,[req.body.Email,code]);
-    console.log('code for'+Email+'is:'+code)
 
 
 
@@ -31,7 +25,10 @@ const result= await rsql(`INSERT INTO "users" ("idKey",name, email,password,"num
 const result1 = await rsql(`SELECT id from "users" where "idKey"=$1`, [id])
 
 res.send(result1.rows)
-  
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 router.route('/createAccount').post(createAccount)
 

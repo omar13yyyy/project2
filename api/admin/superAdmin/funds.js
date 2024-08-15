@@ -31,7 +31,7 @@ async function campaignsDonationLog(req,res,next){
 
     let pages = await commitsql(`SELECT COUNT("campaignDonation".id) as count  FROM "campaignDonation" JOIN request ON "campaignDonation"."campaignId" =request.id LIMIT $1 OFFSET $2  `,[req.body.count,offset]);
 
-    let result = await commitsql(`SELECT "campaignDonation".userIdKey,"campaignDonation".count,"campaignDonation"."createDate",request.title as requestTitle FROM "campaignDonation" JOIN request ON "campaignDonation"."campaignId" =request.id LIMIT $1 OFFSET $2  `,[req.body.count,offset]);
+    let result = await commitsql(`SELECT "campaignDonation".userIdKey,"campaignDonation".count,"campaignDonation"."createDate",campaigns.title as requestTitle FROM "campaignDonation" JOIN campaigns ON "campaignDonation"."campaignId" =campaigns.id LIMIT $1 OFFSET $2  `,[req.body.count,offset]);
     res.json({
         pages : Math.ceil(pages.rows[0].count/req.body.count),
         result : result.rows

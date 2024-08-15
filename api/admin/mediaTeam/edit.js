@@ -132,8 +132,10 @@ async function editAboutUsImage(req,res,next){
 
 }
 async function DeletePreviousCampaigns(req,res,next){
+
     try{
-    let result = await  commitsql(`UPDATE ads SET "isDisable" = $2  WHERE id = $1`,[req.body.id,true]);
+      
+    let result = await  commitsql(`UPDATE "previousCampaigns" SET "isDisable" = true  WHERE id = $1`,[req.body.id]);
 
 
 

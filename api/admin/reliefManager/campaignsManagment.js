@@ -77,7 +77,7 @@ async function campaignsAllotmentStore(req,res,next){
 async function showFundCampaigns(req,res,next){
     try{
 
-    //TODO : 
+ 
     let result = await commitsql(`SELECT SUM(count) FROM "campaignDonation" where "campaignId" =$1`,[req.body.id]);
     res.send(result.rows[0]);
 }catch{
@@ -88,12 +88,10 @@ async function showFundCampaigns(req,res,next){
 }
 
 async function campaignBuying(req,res,next){
-    try{
-
-    //TODO : handle files.length != count.length
+    
     if (req.files) {
 
-        await commitsql(`UPDATE campaigns SET isAllotment = true where id = $1`,[req.body.idCampaign]);
+       // await commitsql(`UPDATE campaigns SET isAllotment = true where id = $1`,[req.body.idCampaign]);
 
         for(let i =0 ; i<req.files.length;i++){
             let result = await commitsql(`INSERT INTO "campaignBuying" (campaignId,imageUrl,cost,"createDate") VALUES ($1,$2,$3,$4)`,[req.body.idCampaign,req.files[i].path,req.body.amount[i],new Date().toISOString()]);
@@ -101,8 +99,11 @@ async function campaignBuying(req,res,next){
 }
 
     res.send("Done");
-    }
-}catch{
+}else{
+    res.status(400).send("images count must == amount count");
+}
+    
+try{}catch{
     console.log("catch")
     res.status(400).send('catch');
   

@@ -87,9 +87,9 @@ const Routes = (app) => {
   app.use(bodyParser.urlencoded({ extended: true })); 
 
 
-  //app.use(express.static('public'));
-  //app.use('/images/b',express.static('images/b'));
-  //app.use('/images/a',express.static('images/a'));
+  app.use(express.static('public'));
+  app.use('/images/b',express.static('images/b'));
+  app.use('/images/a',express.static('images/a'));
   
   app.use('/store', showStorePermission,adminMiddleware,showStore ); 
   app.use('/store', editStorePermission,adminMiddleware,editStore ); 
@@ -140,11 +140,11 @@ const Routes = (app) => {
   
     //---------------------------------------------------------------
     app.use('/user',userMiddleware, userCampaigns);
-    app.use('/user', useraboutUs);
-    app.use('/user', userads);
-    app.use('/user', userrequest);
-    app.use('/user', useraddComplaint);
-    app.use('/user', userprofileInfor);
+    app.use('/user',userMiddleware, useraboutUs);
+    app.use('/user',userMiddleware, userads);
+    app.use('/user',userMiddleware, userrequest);
+    app.use('/user',userMiddleware, useraddComplaint);
+    app.use('/user',userMiddleware, userprofileInfor);
   
   //--------------------------------------------------------------
   

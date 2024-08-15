@@ -10,7 +10,7 @@ async function login(req,res)
   const {email,password } = req.body;
    const result = await rsql('SELECT  * FROM admin where email=$1 ', [email]);
  if (result.rowCount === 0) {
-  res.status(401).send('Invalid email or password');
+  res.status(404).send('Invalid email ');
   return;
 } 
   
@@ -23,7 +23,9 @@ if (!isPasswordValid) {
 
 
 
-  const token = jwt.sign( result.rows[0] , process.env.TOKEN_SECRET_ADMIN)
+  const token = jwt.sign( {id:result.rows[0].id,
+    roleId: result.rows[0].roleId
+  } , process.env.TOKEN_SECRET_ADMIN)
 
   res.send({token :token})
 }catch{

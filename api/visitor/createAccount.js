@@ -9,7 +9,7 @@ const {signupValidator}=require('../../validators/validator')
 const router= express.Router()
 
 async function createAccount (req,res)
-{
+{    try {
   const {id,name,Email,fullNumber,Date,addr } = req.body;
 
   const codeString  = Math.floor(1000 + Math.random() * 9000);
@@ -30,7 +30,10 @@ if (user.rows.length) {
 const result= await rsql(`INSERT INTO users ("idKey",name, email,password,"number",Date,address,"createDate") VALUES ($1, $2, $3,$4, $5, $6,$7,now())`, [id,name,Email,hashedPassword,fullNumber,Date,addr])
 
 res.send({ success: true  });
-  
+} catch (error) {
+  console.error('Error in aboutUs API:', error);
+  res.status(500).send({ error: 'An error occurred while processing the request.' });
+}
 }
 router.route('/createAccount').post(signupValidator,createAccount)
 

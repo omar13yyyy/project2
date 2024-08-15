@@ -18,7 +18,6 @@ async function query(text, params,fun) {
     try {
 
         const result = await client.query(text, params)
-            
                   
 
         client.end();

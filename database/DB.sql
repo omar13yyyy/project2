@@ -6,22 +6,28 @@ public."documentImage",public."requestDonation",public."campaignDonation",public
 public."teamType",public.document,public.team,public."teamMember",public."sendTeam",public.fund,
 public.form,public."allotmentFund",public."allotmentStore",public."storeCategory",
 public."storeSubCategory",public."storeItem",public."requestBuying",public.complaint,
-public."storeLog",public."fundLog",public.role,public.permisions,public."rolePermission",public.admin;
+public."storeLog",public."fundLog",public.role,public.permisions,public."rolePermission","campaignBuying"
+,
+public.admin,public.wallets,public.transactions;
 --CHANGELOG : in Request table change column name : status -> status
+
+
+
+
 CREATE TABLE IF NOT EXISTS public.wallets (
-    WalletID INT,
-    amountwallet integer,
+    WalletID BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    amountwallet INTEGER,
     createtDate DATE,
-    "idKey" text,
-      PRIMARY KEY (WalletID)
-
+    "idKey" TEXT,
+      UNIQUE("idKey")
 );
-
 CREATE TABLE IF NOT EXISTS public.transactions (
   TransactionID SERIAL NOT NULL,
-  IsIncoming INT NOT NULL,
-  TransactionDate DATE NOT NULL,
-  Quantity DECIMAL(10,2) NOT NULL,
+  IsIncoming integer NOT NULL,
+  WalletID integer NOT NULL,
+
+  TransactionDate timestamp NOT NULL,
+  Quantity integer NOT NULL,
  "createDate" timestamp,
 
   PRIMARY KEY (TransactionID)
@@ -40,6 +46,7 @@ CREATE TABLE IF NOT EXISTS public.users
     comf boolean DEFAULT false ,
     PRIMARY KEY ("idKey")
 );
+
 
 
 CREATE TABLE IF NOT EXISTS public.confirmation
@@ -128,6 +135,7 @@ CREATE TABLE IF NOT EXISTS public."enteredForm"
     "formItemId" integer,
     answer text,
     "createDate" timestamp,
+    UNIQUE ("requestId", "formItemId"),
     PRIMARY KEY (id)
 );
 
@@ -216,7 +224,7 @@ CREATE TABLE IF NOT EXISTS public."sendTeam"
     "teamId" integer,
     requestid integer,
     done boolean DEFAULT false ,
-
+appointmentaccepted boolean DEFAULT false,
     "dayDate" timestamp,
     "dateInteger" integer,
     PRIMARY KEY (id)
@@ -386,16 +394,23 @@ CREATE TABLE IF NOT EXISTS public.admin
 --Create Functions............
 Drop FUNCTION IF EXISTS requestDelete;
 
-CREATE FUNCTION requestDelete(idRPar integer) RETURNs boolean AS
+CREATE FUNCTION requestDelete(idRPar integer,userIdP integer) RETURNs boolean AS
 $BODY$
 	
 DECLARE statusVar integer ;
+DECLARE userRId integer ;
+
 BEGIN
 	
-SELECT status into statusVar From request where id =idRPar;
+SELECT status into statusVar  From request where id =idRPar;
+SELECT userId into userRId From request where id =idRPar;
+
+if ( userIdP = userRId ) then
 
 if (statusVar % 2 =1) then
+
 	statusVar=statusVar - 1;
+     DELETE FROM "sendTeam" WHERE requestid = idRPar;
 end if;
 if ((statusVar / 2) % 2) = 1 then
 	statusVar=statusVar - 2;
@@ -422,28 +437,13 @@ else
 	
 UPDATE request  SET status = status + 128  WHERE id = idRPar;
 end if;
-
-
 return true ;
-END;
 
-$BODY$
-	
-LANGUAGE plpgsql VOLATILE SECURITY DEFINER
-  COST 100;
-
-Drop FUNCTION IF EXISTS addItem;
-CREATE FUNCTION addItem(subCategoryIdPar integer ,titlePar text ,countPar integer,datePar timestamp) RETURNs void AS
-$BODY$
-DECLARE idVar integer ;
-
-BEGIN
-
-INSERT INTO  "storeItem" ("subCategoryId",title,count,"createDate") VALUES (subCategoryIdPar,titlePar,countPar,datePar) RETURNING id  INTO idVar;
-INSERT INTO "storeLog" ("itemId",state,count,"createDate") VALUES (idVar,1,countPar,datePar) ;
+else
+return false ;
+end if;
 
 
-	
 END;
 
 $BODY$
@@ -497,16 +497,46 @@ LANGUAGE plpgsql VOLATILE SECURITY DEFINER
 
 
 
+
 Drop FUNCTION IF EXISTS requestAllotmentFund;
 
 CREATE FUNCTION requestAllotmentFund(idPar integer ,amountPar integer,datePar timestamp) RETURNs void AS
 $BODY$
 	
+DECLARE statusVar integer ;
+DECLARE isShow boolean ;	
 DECLARE userIdKey text ;
 
 BEGIN
 
+SELECT status into statusVar From request where id =idPar;
+
+if (statusVar % 2 =1) then
+	statusVar=statusVar - 1;
+end if;
+if ((statusVar / 2) % 2) = 1 then
+	statusVar=statusVar - 2;
+end if;
+if ((statusVar / 4) % 2) = 1 then
+	statusVar=statusVar - 4;
+	isShow=true;
+
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 8;
+else
+	
 UPDATE request  SET status = status + 8  WHERE id = idPar;
+end if;
+
+if isShow then
+SELECT users."idKey" into userIdKey FROM request JOIN users ON users.id = request.userId   WHERE request.id = idPar;
+	
+INSERT INTO "fundLog" (count,state,userIdKey,"createDate") VALUES (amountPar,3,userIdKey,datePar) ;
+	
+INSERT INTO "allotmentFund" ("requestId",count,"createDate") VALUES (idPar,amountPar,datePar) ;
+
+else
 
 SELECT users."idKey" into userIdKey FROM request JOIN users ON users.id = request.userId   WHERE request.id = idPar;
 	
@@ -516,6 +546,8 @@ INSERT INTO "allotmentFund" ("requestId",count,"createDate") VALUES (idPar,amoun
 
 UPDATE fund  SET count = count - amountPar where id = 1 ;
 
+end if;
+
 	
 END;
 
@@ -523,6 +555,9 @@ $BODY$
 	
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER
   COST 100;
+
+
+
 
 
 
@@ -569,6 +604,124 @@ $BODY$
 LANGUAGE plpgsql VOLATILE SECURITY DEFINER
   COST 100;
 
+
+
+Drop FUNCTION IF EXISTS addItem;
+CREATE FUNCTION addItem(subCategoryIdPar integer ,titlePar text ,countPar integer,datePar timestamp) RETURNs void AS
+$BODY$
+DECLARE idVar integer ;
+
+BEGIN
+
+INSERT INTO  "storeItem" ("subCategoryId",title,count,"createDate") VALUES (subCategoryIdPar,titlePar,countPar,datePar) RETURNING id  INTO idVar;
+INSERT INTO "storeLog" ("itemId",state,count,"createDate") VALUES (idVar,1,countPar,datePar) ;
+
+
+END;
+
+
+$BODY$
+	
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+  COST 100;
+
+
+
+
+Drop FUNCTION IF EXISTS rejectRequest;
+
+CREATE FUNCTION rejectRequest(idRPar integer) RETURNs void AS
+$BODY$
+	
+DECLARE statusVar integer ;
+DECLARE change boolean ;
+
+BEGIN
+change=true;
+SELECT status into statusVar From request where id =idRPar;
+
+if (statusVar % 2 =1) then
+	statusVar=statusVar - 1;
+DELETE FROM "sendTeam" WHERE requestid = idRPar;
+
+end if;
+if ((statusVar / 2) % 2) = 1 then
+	statusVar=statusVar - 2;
+end if;
+if ((statusVar / 4) % 2) = 1 then
+	statusVar=statusVar - 4;
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 8;
+
+	
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 8;
+
+	
+end if;
+if ((statusVar / 16) % 2) = 1 then
+	statusVar=statusVar - 16;
+
+	
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 32;
+
+	
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 64;
+
+	
+end if;
+if ((statusVar / 8) % 2) = 1 then
+	statusVar=statusVar - 128;
+change =false;
+	
+end if;
+if (change) then
+UPDATE request  SET status = status + 128  WHERE id = idRPar;
+	
+end if;
+
+	
+END;
+
+$BODY$
+	
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+  COST 100;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 INSERT INTO permisions (id,title,"createDate") VAlUES (1,'show Store Permission',now());
 INSERT INTO permisions (id,title,"createDate") VAlUES (2,'edit Store Permission',now());
 INSERT INTO permisions (id,title,"createDate") VAlUES (3,'store Log Permission',now());
@@ -592,10 +745,115 @@ INSERT INTO permisions (id,title,"createDate") VAlUES (20,'full Admin Permission
 INSERT INTO permisions (id,title,"createDate") VAlUES (21,'superAdmin Campaigns  Permission',now());
 
 
+INSERT INTO role (title,"createDate") VAlUES ('superAdmin',now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (1,8,now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (1,9,now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (1,10,now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (1,21,now());
+
+
+INSERT INTO role (title,"createDate") VAlUES ('visitedTeamteam',now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (2,4,now());
+INSERT INTO "rolePermission" ("roleId","permissionId","createDate") VAlUES (2,5,now());
+
+
+
+--const hashedPassword = await bcrypt.hash("1234567890", 10);
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+INSERT INTO admin (email,"roleId",name,password,"createDate") VAlUES ('admin@mail.com',1,'adminName',crypt('1234567890', gen_salt('bf', 10)),now());
+INSERT INTO admin (email,"roleId",name,password,"createDate") VAlUES ('adminvisitedTeamteam@mail.com',2,'adminvisitedTeamteam',crypt('1234567890', gen_salt('bf', 10)),now());
+
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'not visited','description1','work',0,0,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'not visited-Receptionist','description1','work',0,16,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'Rejected','description1','work',0,64,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'Canceled','description1','work',0,128,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'visited','description1','work',0,3,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'visited-Receptionist','description1','work',0,19,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'will-visted','description1','work',0,1,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'will-visted-Receptionist','description1','work',0,17,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'show','description1','work',0,7,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'show-Receptionist','description1','work',0,23,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'showDonation','description1','work',0,7,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(1,'showDonation-Receptionist','description1','work',0,23,'description2',now());
+
+
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'not visited-user2','description1','work',0,0,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'not visited-Receptionist-user2','description1','work',0,16,'description2',now());
+
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'not visited--user2-2','description1','work',0,1,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'not visited--user2-2test','description1','work',0,1,'description2',now());
+
+
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'Rejected-user2','description1','work',0,64,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'Canceled-user2','description1','work',0,128,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'visited-user2','description1','work',0,3,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'visited-Receptionist-user2','description1','work',0,11,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'show-user2','description1','work',0,7,'description2',now());
+INSERT INTO request (userId,title,description1,work,priority,status,description2,"createDate") VALUES(2,'show-Receptionist-user2','description1','work',0,15,'description2',now());
+
+
+INSERT INTO users ("idKey",name,email,password,"number",address,date,comf,"createDate") VALUES ('09010','user1','user1@mail.com',crypt('1234567890', gen_salt('bf', 10)),'0987654321','address-address',now(),true,now());
+INSERT INTO users ("idKey",name,email,password,"number",address,date,comf,"createDate") VALUES ('09011','user2','user2@mail.com',crypt('1234567890', gen_salt('bf', 10)),'0987654321','address-address',now(),true,now());
+
+
+INSERT INTO form ("typeId",title,"createDate") VALUES(1,'title1',now());
+INSERT INTO form ("typeId",title,"createDate") VALUES(1,'title2',now());
+INSERT INTO form ("typeId",title,"createDate") VALUES(1,'title3',now());
+
+INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES(5,1,'answer1',now());
+INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES(5,2,'answer2',now());
+INSERT INTO "enteredForm" ("requestId","formItemId",answer,"createDate") VALUES(5,3,'answer3',now());
+
+INSERT INTO "teamType" (title,"createDate") VALUES('first team',now());
+INSERT INTO "teamType" (title,"createDate") VALUES('second team',now());
+
+INSERT INTO team ("typeId",title,adminId,"createDate")VALUES(1,'team1',2,now());
+
+
+
+
+INSERT INTO "fundDonation" (userIdKey,count,"createDate") VALUES('09010',20000000,now());
+INSERT INTO fund (count) VALUES (20000000);
+
+
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (5,'09010',20000,now());
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (6,'09010',20000,now());
+
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (7,'09010',20000,now());
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (8,'09010',20000,now());
+
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (9,'09010',20000,now());
+INSERT INTO "requestDonation" ("requestId",userIdKey,count,"createDate") VALUES (10,'09010',20000,now());
+
+INSERT INTO campaigns (title,"imageUrl",budget,"targetGroup",reason,description,minimumDonation,"createDate") VALUES
+('title1','url',100000,'targetGroup','reason','description',500,now());
+
+INSERT INTO "campaignDonation" ("campaignId",userIdKey,count,"createDate") VALUES(1,'09010',2000,now());
+
+
+
+INSERT INTO  complaint ("userId",complaint,"createDate") VALUES(1,'complaint1',now());
+INSERT INTO  complaint ("userId",complaint,"createDate") VALUES(1,'complaint2',now());
+INSERT INTO  complaint ("userId",complaint,"createDate") VALUES(1,'complaint3',now());
+
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,1,false,true,now(),8);
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,2,false,true,now(),8);
+
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,7,false,false,now(),8);
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,8,false,false,now(),8);
+
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,15,false,true,now(),8);
+INSERT INTO "sendTeam" ("teamId",requestid,done,appointmentaccepted,"dayDate","dateInteger") VALUES(1,16,false,true,now(),8);
+
+INSERT INTO wallets (amountwallet,"idKey",createtDate) VALUES (2000000,'09010',now());
+
+INSERT INTO "aboutUs" ("imageUrl",text1,text2,text3,text4,text5,"contactUs") VALUES('utl','text1','text2','text3','text4','text5','contactUs');
+
+/*
 
 --Alter releation 
 
-/*
+
 ALTER TABLE IF EXISTS public."enteredForm"
     ADD FOREIGN KEY ("requestId")
     REFERENCES public.request (id) MATCH SIMPLE

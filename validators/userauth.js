@@ -1,23 +1,34 @@
 const jwt = require('jsonwebtoken');
 
 const userMiddleware= (req, res, next) => {
-  const authHeader = req.headers.authorization;    if (!authHeader) {
+
+  if(req.headers.authorization != undefined){
+  const authHeader = req.headers.authorization;
+
+    console.log(authHeader)
+    if (!authHeader) {
         return res.status(401).send({ message: 'Unauthorized' });
-      }console.log(authHeader)
+      }
+      //console.log(authHeader)
        var userId
 
       jwt.verify(authHeader, process.env.TOKEN_SECRET, (error, decoded) => {
        userId = decoded.id; 
-       role = decoded.role; 
+      // role = decoded.role; 
 
-       exports.userId 
-  console.log(role+"kjhgf")
   
   req.userId = userId;
   next(); 
 
     }); 
-  };module.exports = userMiddleware;
+  }else 
+ // return res.status(401).send({ message: 'Unauthorized' });
+ return res.status(200).send([{ idKey:"",name:"",email:"",number:"",address:"",date:"" }]);
+
+  ;
+}
+  
+  module.exports = userMiddleware;
  
 
 

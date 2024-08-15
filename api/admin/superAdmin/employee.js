@@ -22,11 +22,12 @@ async function showRole(req,res,next){
 async function createRole(req,res,next){
 
 
-    try{
+    
 
     let result = await commitsql(`INSERT INTO role (title,"createDate") VALUES ($1,$2)`,[req.body.title,new Date().toISOString()]);
     res.send("Done");
-}catch{
+
+    try{}catch{
     console.log("catch")
     res.status(400).send('catch');
 }  
@@ -64,7 +65,6 @@ async function showRolePermisions(req,res,next){
 
 async function addPermissionToRole(req,res,next){
 
- //TODO : make (roleId-permissionId) unique
 
  try{
 
@@ -91,13 +91,18 @@ async function deletePermissionFromRole(req,res,next){
 
    }
    async function createEmployee(req,res,next){
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     try{
 
-    //TODO : encrypt password
-     let result = await commitsql(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`,[req.body.email,req.body.roleId,req.body.name,hashedPassword,new Date().toISOString()]);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        let result2=await commitsql(`Select email from admin where email =$1`,[req.body.email]);
+        if(result2.rowCount ==0){
+         await commitsql(`INSERT INTO admin (email,"roleId",name,password,"createDate") VALUES ($1,$2,$3,$4,$5)`,[req.body.email,req.body.roleId,req.body.name,hashedPassword,new Date().toISOString()]);
  
         res.send("Done");
+    
+    }else
+    res.status(400).send("email is exist");
+
     }catch{
         console.log("catch")
         res.status(400).send('catch');
@@ -106,7 +111,6 @@ async function deletePermissionFromRole(req,res,next){
  
     }
     async function deleteEmployee(req,res,next){
-        //TODO : encrypt password
         try{
 
         await commitsql(`DELETE FROM admin
